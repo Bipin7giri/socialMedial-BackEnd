@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const loginModel = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const register = async (req, res) => {
+  console.log(req.body);
+
   const body = req.body;
   const emailFromDb = await loginModel.findOne({
     gmail: body.gmail,
@@ -14,16 +16,23 @@ const register = async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
   await user.save();
-  res.send('store to db');
+  res.send('success');
 };
 const getAllUsers = async (req, res) => {
-  const withoutQuotesEmail = req.params.email.replaceAll('"', '');
-  const allUsers = await loginModel.find({
-    gmail: { $ne: withoutQuotesEmail },
-  });
-  res.send({
-    allUsers,
-  });
+  if (req.params.email) {
+    const withoutQuotesEmail = req.params.email.replaceAll('"', '');
+    const allUsers = await loginModel.find({
+      gmail: { $ne: withoutQuotesEmail },
+    });
+    res.send({
+      allUsers,
+    });
+  } else {
+    const allUsers = await loginModel.find({});
+    res.send({
+      allUsers,
+    });
+  }
 };
 const isLogin = async (req, res) => {
   const userEmail = await req.body.gmail;
@@ -48,10 +57,20 @@ const isLogin = async (req, res) => {
 const addFollower = async (req, res) => {
   const withoutQuotesEmail = req.body.authEmail.replaceAll('"', '');
 
-  const checkIfAlreadyFollowed = await loginModel.findOne({
-    gmail: req.body.followID,
-  });
-
+  // const { Following } = await loginModel.findOne({
+  //   gmail: req.body.followID,
+  // });
+  // console.log(Following);
+  // const alreadyFollowed = Following.filter((item) => {
+  //   if (item !== req.body.followID) {
+  //     return item;
+  //   } else {
+  //     return item;
+  //   }
+  // });
+  // console.log(alreadyFollowed);
+  // return;
+  // if (alreadyFollowed.length >= 0) {
   const followed = await loginModel.updateOne(
     { gmail: withoutQuotesEmail },
     { $push: { Following: req.body.followID } }
@@ -63,20 +82,19 @@ const addFollower = async (req, res) => {
   if (followed && follower) {
     res.send('followed');
   }
+};
+const getFollowing = async (req, res) => {
+  const withoutQuotesEmail = req.params.email.replaceAll('"', '');
 
-  // let data = await loginModel.findByIdAndUpdate(
-  //   {
-  //     gmail: withoutQuotesEmail,
-  //   },
-  //   {
-  //     $push: {
-  //       following: 'req.body.followID',
-  //     },
-  //   }
-  // );
-  // if (data) {
-  //   res.send('ok');
-  // }
+  const { Following } = await loginModel.findOne({
+    gmail: withoutQuotesEmail,
+  });
+
+  if ({ Following }) {
+    res.json({
+      following: Following,
+    });
+  }
 };
 
 // module.exports = { register };
@@ -85,4 +103,5 @@ module.exports = {
   getAllUsers,
   isLogin,
   addFollower,
+  getFollowing,
 };

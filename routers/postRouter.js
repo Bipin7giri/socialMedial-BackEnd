@@ -4,6 +4,7 @@ const {
   getPostById,
   addPost,
   addComment,
+  // addLike,
 } = require('../controllers/postController');
 const PostModel = require('../models/PostModel');
 const router = express.Router();
@@ -19,4 +20,6 @@ router.post('/', addPost);
 
 // add comment
 router.put('/comment', addComment);
+// router.put('/like', addLike);
+
 module.exports = router;

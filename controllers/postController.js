@@ -4,12 +4,6 @@ const UserModel = require('../models/UserModel');
 
 const getAllPosts = async (req, res) => {
   const allPosts = await postModel.find({});
-
-  // const userId = allPosts.userId;
-  // const userName = await UserModel.find({
-  //   userId,
-  // });
-  // console.log(userName[0].gmail);
   res.json({
     allPosts,
   });
@@ -23,22 +17,24 @@ const getPostById = async (req, res) => {
   });
 };
 const addPost = async (req, res) => {
-  console.log(req.body);
-
   const withoutQuotesEmail = req.body.email.replaceAll('"', '');
+  const userId = await UserModel.find({ gmail: withoutQuotesEmail });
+  console.log(userId[0].gmail);
   const newPost = await postModel.create({
     email: withoutQuotesEmail,
     title: req.body.title,
     content: req.body.content,
-    tags: req.body.tags,
+    tags: '#' + req.body.tags,
+    posts: withoutQuotesEmail,
   });
+
   res.send('added to db');
 };
 
 // add Comment to post
 const addComment = async (req, res) => {
   const withoutQuotesEmail = req.body.email.replaceAll('"', '');
-  let data = await postModel.findByIdAndUpdate(
+  const data = await postModel.findByIdAndUpdate(
     {
       _id: req.body.id,
     },
@@ -52,10 +48,74 @@ const addComment = async (req, res) => {
     res.send('ok');
   }
 };
+// const addLike = async (req, res) => {
+//   // if (req.body.id === true) {
 
+//   //  }
+//   const withoutQuotesEmail = req.body.email.replaceAll('"', '');
+
+//   const { likes } = await postModel.findById({ _id: req.body.id });
+
+//   const check = likes.map((item) => {
+//     if (item.email === withoutQuotesEmail) {
+//       return true;
+//     } else {
+//       return false;
+//     }
+//   });
+//   console.log(check);
+
+//   if (check[0] === true) {
+//     const data = await postModel.findByIdAndUpdate(
+//       { _id: req.body.id },
+//       {
+//         $set: {
+//           likes: { email: withoutQuotesEmail, like: false },
+//         },
+//       }
+//     );
+//     if (data) {
+//       res.json({
+//         status: false,
+//         postId: req.body.id,
+//       });
+//     }
+//   } else if (check[0] === null || check[0] === false) {
+//     const data = await postModel.findByIdAndUpdate(
+//       { _id: req.body.id },
+//       {
+//         $set: {
+//           likes: { email: withoutQuotesEmail, like: true },
+//         },
+//       }
+//     );
+//     if (data) {
+//       res.json({
+//         status: true,
+//         postId: req.body.id,
+//       });
+//     }
+//   } else if (check[0] === undefined) {
+//     const data = await postModel.findByIdAndUpdate(
+//       { _id: req.body.id },
+//       {
+//         $push: {
+//           likes: { email: withoutQuotesEmail, like: false },
+//         },
+//       }
+//     );
+//     if (data) {
+//       res.json({
+//         status: false,
+//         postId: req.body.id,
+//       });
+//     }
+//   }
+// };
 module.exports = {
   getAllPosts,
   getPostById,
   addPost,
   addComment,
+  // addLike,
 };

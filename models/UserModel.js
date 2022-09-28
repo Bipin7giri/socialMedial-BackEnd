@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, require: true },
     Followers: [],
     Following: [],
+    posts: [],
   },
   opts
   // { collection: 'users' }
