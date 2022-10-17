@@ -4,7 +4,8 @@ const {
   getPostById,
   addPost,
   addComment,
-  // addLike,
+  addLike,
+  getNotification,
 } = require('../controllers/postController');
 const PostModel = require('../models/PostModel');
 const router = express.Router();
@@ -15,11 +16,14 @@ router.get('/', getAllPosts);
 // get postById
 router.get('/userId/:email', getPostById);
 
+// get notification
+router.get('/notification/:email', getNotification);
+
 // add post
 router.post('/', addPost);
 
 // add comment
 router.put('/comment', addComment);
-// router.put('/like', addLike);
+router.put('/like', addLike);
 
 module.exports = router;

@@ -6,6 +6,7 @@ const {
   isLogin,
   addFollower,
   getFollowing,
+  showIfNotFollowed,
 } = require('../controllers/loginController');
 const User = require('../models/UserModel');
 const router = express.Router();
@@ -18,4 +19,5 @@ router.post('/login', isLogin);
 // followers route
 router.post('/followers', addFollower);
 router.get('/followers/:email', getFollowing);
+router.get('/ifnotfollowed/:email', showIfNotFollowed);
 module.exports = router;

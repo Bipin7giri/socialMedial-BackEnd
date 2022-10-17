@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
-
+const opts = {
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+  },
+};
 const PostSchema = new mongoose.Schema(
   {
     email: { type: String, required: true },
@@ -7,6 +12,7 @@ const PostSchema = new mongoose.Schema(
     title: { type: String },
     content: { type: String },
     tags: { type: String },
+    notification: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Posts' }],
     likes: [
       {
         email: { type: String },
@@ -26,6 +32,8 @@ const PostSchema = new mongoose.Schema(
       },
     ],
   },
-  { collection: 'posts' }
+  opts
+
+  // { collection: 'posts' }
 );
 module.exports = mongoose.model('Posts', PostSchema);

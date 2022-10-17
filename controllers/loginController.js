@@ -44,6 +44,7 @@ const isLogin = async (req, res) => {
   if (emailDb) {
     bcrypt.compare(userPassword, emailDb.password, function (err, status) {
       if (status === true) {
+        console.log('ok');
         res.send('matched');
       } else {
         res.send('not matched');
@@ -57,20 +58,6 @@ const isLogin = async (req, res) => {
 const addFollower = async (req, res) => {
   const withoutQuotesEmail = req.body.authEmail.replaceAll('"', '');
 
-  // const { Following } = await loginModel.findOne({
-  //   gmail: req.body.followID,
-  // });
-  // console.log(Following);
-  // const alreadyFollowed = Following.filter((item) => {
-  //   if (item !== req.body.followID) {
-  //     return item;
-  //   } else {
-  //     return item;
-  //   }
-  // });
-  // console.log(alreadyFollowed);
-  // return;
-  // if (alreadyFollowed.length >= 0) {
   const followed = await loginModel.updateOne(
     { gmail: withoutQuotesEmail },
     { $push: { Following: req.body.followID } }
@@ -86,9 +73,23 @@ const addFollower = async (req, res) => {
 const getFollowing = async (req, res) => {
   const withoutQuotesEmail = req.params.email.replaceAll('"', '');
 
+  const { Following } = await loginModel?.findOne({
+    gmail: withoutQuotesEmail,
+  });
+
+  if ({ Following }) {
+    res.json({
+      following: Following,
+    });
+  }
+};
+const showIfNotFollowed = async (req, res) => {
+  const withoutQuotesEmail = req.params.email.replaceAll('"', '');
+
   const { Following } = await loginModel.findOne({
     gmail: withoutQuotesEmail,
   });
+  console.log(Following);
 
   if ({ Following }) {
     res.json({
@@ -104,4 +105,5 @@ module.exports = {
   isLogin,
   addFollower,
   getFollowing,
+  showIfNotFollowed,
 };
