@@ -12,7 +12,9 @@ const PostSchema = new mongoose.Schema(
     title: { type: String },
     content: { type: String },
     tags: { type: String },
-    notification: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Posts' }],
+    notification: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'Notifications' },
+    ],
     likes: [
       {
         email: { type: String },

@@ -2,21 +2,26 @@ const mongoose = require('mongoose');
 
 const loginModel = require('../models/UserModel');
 const bcrypt = require('bcrypt');
+const generateAccessToken = require('../generateAccessToken');
 const register = async (req, res) => {
-  console.log(req.body);
-
+  console.log(token);
   const body = req.body;
   const emailFromDb = await loginModel.findOne({
     gmail: body.gmail,
   });
   if (body.gmail === emailFromDb?.gmail) {
-    return res.send('Already exist');
+    return res.json({
+      status: 'Already Exist',
+    });
   }
   const user = new loginModel(body);
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
   await user.save();
-  res.send('success');
+  res.json({
+    status: 201,
+  });
+  // res.send('success');
 };
 const getAllUsers = async (req, res) => {
   if (req.params.email) {
@@ -35,6 +40,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 const isLogin = async (req, res) => {
+  const token = generateAccessToken({ username: req.body.gmail });
   const userEmail = await req.body.gmail;
   const userPassword = await req.body.password;
   const emailDb = await loginModel.findOne({
@@ -44,14 +50,21 @@ const isLogin = async (req, res) => {
   if (emailDb) {
     bcrypt.compare(userPassword, emailDb.password, function (err, status) {
       if (status === true) {
-        console.log('ok');
-        res.send('matched');
+        res.json({
+          status: 'matched',
+          token: token,
+        });
+        // res.send('matched');
       } else {
-        res.send('not matched');
+        res.json({
+          status: 'not matched',
+        });
       }
     });
   } else {
-    await res.send('not registered');
+    res.json({
+      status: 'not registered',
+    });
   }
 };
 // adding follower

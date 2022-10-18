@@ -3,8 +3,7 @@ const postModel = require('../models/PostModel');
 const UserModel = require('../models/UserModel');
 const NotificationModel = require('../models/NotificationModel');
 const PostModel = require('../models/PostModel');
-const { find } = require('../models/PostModel');
-const { post } = require('../routers/postRouter');
+
 const getAllPosts = async (req, res) => {
   const allPosts = await postModel.find({});
   res.json({
@@ -20,7 +19,7 @@ const getPostById = async (req, res) => {
   });
 };
 const addPost = async (req, res) => {
-  const withoutQuotesEmail = req.body.email.replaceAll('"', '');
+  const withoutQuotesEmail = req.body?.email?.replaceAll('"', '');
   const userId = await UserModel.find({ gmail: withoutQuotesEmail });
   console.log(userId[0].gmail);
   const newPost = await postModel.create({
@@ -30,7 +29,6 @@ const addPost = async (req, res) => {
     tags: req.body.tags,
     posts: withoutQuotesEmail,
   });
-
   res.send('added to db');
 };
 
@@ -52,7 +50,6 @@ const addComment = async (req, res) => {
     content: `${withoutQuotesEmail} has commented: ${req.body.comment} `,
     post: data._id,
   });
-  console.log(notification);
   const notificationID = await PostModel.findByIdAndUpdate(
     { _id: data._id },
     {
@@ -84,6 +81,16 @@ const addLike = async (req, res) => {
         },
       }
     );
+    const notification = await NotificationModel.create({
+      content: `${withoutQuotesEmail} has liked your post `,
+      post: data._id,
+    });
+    const notificationID = await PostModel.findByIdAndUpdate(
+      { _id: data._id },
+      {
+        $push: { notification: notification },
+      }
+    );
     if (data) {
       res.json({
         status: true,
@@ -105,66 +112,49 @@ const addLike = async (req, res) => {
     }
   }
 
-  const notification = await NotificationModel.create({
-    content: `${withoutQuotesEmail} has liked your post`,
-    post: _id,
-  });
-  const notificationID = await PostModel.findByIdAndUpdate(
-    { _id: _id },
-    {
-      notification: notification._id,
-    }
-  );
+  // const notification = await NotificationModel.create({
+  //   content: `${withoutQuotesEmail} has liked your post`,
+  //   post: _id,
+  // });
+  // const notificationID = await PostModel.findByIdAndUpdate(
+  //   { _id: _id },
+  //   {
+  //     notification: notification._id,
+  //   }
+  // );
 };
 const getNotification = async (req, res) => {
   const email = req.params.email;
-  let finalNotification = [];
 
-  const data = await PostModel.find({ email: email }).populate('notification');
-  console.log(data);
-  res.json({
-    notification: data,
-  });
-
-  return;
-  const notificationId = data.map((item, index) => {
+  const data = await PostModel.find({
+    email: email,
+  }).populate('notification');
+  const allNotification = data.map((item, id) => {
     return item.notification;
   });
-  const concatNotificationId = Array.prototype.concat(...notificationId);
-  console.log(concatNotificationId);
-  let arr = [];
-  const getNotification = concatNotificationId.map((item, id) => {
-    arr = [];
-    NotificationModel.find({ post: item }).then((data) => {
-      // console.log(data);
-      arr = [...[data]];
+  const concatNotification = Array.prototype.concat(allNotification);
+  const merged = concatNotification.filter((item, id) => {
+    return item;
+  });
+
+  const notification = merged.map((item, id) => {
+    return item.map((item, id) => {
+      return item;
     });
   });
-  console.log(arr);
-  // const concatNotification = Array.prototype.concat(...arr);
-  // console.log(concatNotification);
-  // console.log(getNotification);
-  res.json({
-    notification: 'r',
-  });
-  // // console.log(notification);
-  // const datas = PostModel.find({ email: email }).exec((err, user) => {
-  //   const notificationId = user.map((item, id) => {
-  //     return item.notification;
-  //   });
-  //   console.log(notificationId);
-  //   const notification = notificationId.map((item) => {
-  //     console.log(item.toString());
 
-  //     const notification = NotificationModel.find({
-  //       post: item,
-  //     }).exec((err, notify) => {
-  //       finalNotification = notify;
-  //       // console.log(getNotificationWithPost);
-  //     });
-  //   });
-  // });
-  // console.log(finalNotification);
+  const notify = notification.flat(1);
+
+  const sortedNotification = notify.sort((a, b) => {
+    return b.created_at - a.created_at;
+  });
+  const onlyContentOfNotification = sortedNotification.map((item) => {
+    return item.content;
+  });
+  console.log(onlyContentOfNotification);
+  res.json({
+    notification: onlyContentOfNotification,
+  });
 };
 
 module.exports = {
