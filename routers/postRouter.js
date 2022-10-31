@@ -1,4 +1,6 @@
 const express = require('express');
+// const {} = require('../../client/src/assets/images');
+
 const {
   getAllPosts,
   getPostById,
@@ -8,10 +10,31 @@ const {
   getNotification,
 } = require('../controllers/postController');
 const jwt = require('jsonwebtoken');
-
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 const jwtToken = require('../generateAccessToken');
+const path = require('path');
 const PostModel = require('../models/PostModel');
 const router = express.Router();
+
+// for photoupload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, '../client/src/assets/images');
+  },
+  filename: function (req, file, cb) {
+    cb(null, uuidv4() + '-' + Date.now() + path.extname(file.originalname));
+  },
+});
+const fileFilter = (req, file, cb) => {
+  const allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+  if (allowedFileTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+let upload = multer({ storage, fileFilter });
 
 // getall posts
 router.get('/', getAllPosts);
@@ -23,12 +46,11 @@ router.get('/userId/:email', getPostById);
 router.get('/notification/:email', getNotification);
 
 // add post
-router.post('/', tokenValidation, addPost);
+router.post('/', upload.single('image'), tokenValidation, addPost);
 
 // middleware for tokenValidation
 function tokenValidation(req, res, next) {
   const authHeader = req.headers['authorization'];
-
   if (!authHeader) {
     return res.send('invalid user');
   }
@@ -44,3 +66,4 @@ router.put('/comment', addComment);
 router.put('/like', addLike);
 
 module.exports = router;
+// module.exports = storage;

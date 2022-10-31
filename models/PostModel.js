@@ -8,10 +8,11 @@ const opts = {
 const PostSchema = new mongoose.Schema(
   {
     email: { type: String, required: true },
-    imgage: { type: String },
+    image: { type: String },
     title: { type: String },
     content: { type: String },
     tags: { type: String },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     notification: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'Notifications' },
     ],

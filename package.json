@@ -18,6 +18,9 @@
     "express-router": "^0.0.1",
     "express-session": "^1.17.3",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.6.1"
+    "mongoose": "^6.6.1",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.5.3",
+    "uuidv4": "^6.2.13"
   }
 }

@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
+
 const postModel = require('../models/PostModel');
 const UserModel = require('../models/UserModel');
 const NotificationModel = require('../models/NotificationModel');
 const PostModel = require('../models/PostModel');
 
 const getAllPosts = async (req, res) => {
-  const allPosts = await postModel.find({});
+  const allPosts = await postModel.find({}).populate('user');
   res.json({
     allPosts,
   });
@@ -13,7 +14,9 @@ const getAllPosts = async (req, res) => {
 
 const getPostById = async (req, res) => {
   const withoutQuotesEmail = req.params.email.replaceAll('"', '');
-  const postByID = await postModel.find({ email: withoutQuotesEmail });
+  const postByID = await postModel
+    .find({ email: withoutQuotesEmail })
+    .populate('user');
   res.json({
     postByID,
   });
@@ -21,14 +24,26 @@ const getPostById = async (req, res) => {
 const addPost = async (req, res) => {
   const withoutQuotesEmail = req.body?.email?.replaceAll('"', '');
   const userId = await UserModel.find({ gmail: withoutQuotesEmail });
+  const user_id = await UserModel.findOne({ gmail: withoutQuotesEmail });
   console.log(userId[0].gmail);
   const newPost = await postModel.create({
     email: withoutQuotesEmail,
     title: req.body.title,
     content: req.body.content,
     tags: req.body.tags,
-    posts: withoutQuotesEmail,
+    image: req.file.filename,
+    user: user_id,
   });
+  const users = await UserModel.findOneAndUpdate(
+    {
+      gmail: withoutQuotesEmail,
+    },
+    {
+      $push: { posts: newPost },
+    }
+  );
+  console.log(users);
+
   res.send('added to db');
 };
 
@@ -64,7 +79,7 @@ const addComment = async (req, res) => {
 };
 
 const addLike = async (req, res) => {
-  const withoutQuotesEmail = req.body.email.replaceAll('"', '');
+  const withoutQuotesEmail = req.body.email?.replaceAll('"', '');
   const { likes, _id } = await postModel.findById({ _id: req.body.id });
   const check = likes.filter((item) => {
     if (item.email === withoutQuotesEmail) {

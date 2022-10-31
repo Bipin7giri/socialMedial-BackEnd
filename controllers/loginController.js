@@ -4,7 +4,6 @@ const loginModel = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const generateAccessToken = require('../generateAccessToken');
 const register = async (req, res) => {
-  console.log(token);
   const body = req.body;
   const emailFromDb = await loginModel.findOne({
     gmail: body.gmail,
@@ -14,7 +13,9 @@ const register = async (req, res) => {
       status: 'Already Exist',
     });
   }
+
   const user = new loginModel(body);
+  user.image = req.file.filename;
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
   await user.save();
@@ -24,20 +25,32 @@ const register = async (req, res) => {
   // res.send('success');
 };
 const getAllUsers = async (req, res) => {
-  if (req.params.email) {
-    const withoutQuotesEmail = req.params.email.replaceAll('"', '');
-    const allUsers = await loginModel.find({
-      gmail: { $ne: withoutQuotesEmail },
-    });
-    res.send({
-      allUsers,
-    });
-  } else {
-    const allUsers = await loginModel.find({});
-    res.send({
-      allUsers,
-    });
-  }
+  console.log(req.params.email);
+  const authEmail = req.params.email;
+  console.log(authEmail);
+  const getAuthUser = await loginModel
+    .find({
+      gmail: authEmail.replaceAll('"', ''),
+    })
+    .populate('posts');
+  res.send(getAuthUser);
+  // console.log(getAuthUser);
+  // return;
+  // if (req.params.email) {
+  //   const withoutQuotesEmail = req.params.email.replaceAll('"', '');
+  //   const allUsers = await loginModel.find({
+  //     gmail: { $ne: withoutQuotesEmail },
+  //   });
+  //   console.log(allUsers);
+  //   res.send({
+  //     allUsers,
+  //   });
+  // } else {
+  //   const allUsers = await loginModel.find({});
+  //   res.send({
+  //     allUsers,
+  //   });
+  // }
 };
 const isLogin = async (req, res) => {
   const token = generateAccessToken({ username: req.body.gmail });
@@ -85,15 +98,15 @@ const addFollower = async (req, res) => {
 };
 const getFollowing = async (req, res) => {
   const withoutQuotesEmail = req.params.email.replaceAll('"', '');
+  // console.log(withoutQuotesEmail);
 
-  const { Following } = await loginModel?.findOne({
-    gmail: withoutQuotesEmail,
+  const allUsers = await loginModel.find({
+    gmail: { $ne: withoutQuotesEmail },
   });
+  console.log(allUsers);
 
-  if ({ Following }) {
-    res.json({
-      following: Following,
-    });
+  if (allUsers) {
+    res.send(allUsers);
   }
 };
 const showIfNotFollowed = async (req, res) => {
